@@ -12,6 +12,7 @@ from .validators import (
 )
 
 
+# Serializer Habitacion
 class HabitacionSerializer(serializers.ModelSerializer):
     numero = serializers.IntegerField(min_value=1, max_value=9999)
     tipo = serializers.CharField(min_length=3, max_length=30, trim_whitespace=True)
@@ -39,6 +40,7 @@ class HabitacionSerializer(serializers.ModelSerializer):
         return value
 
 
+# Serializer Huesped
 class HuespedSerializer(serializers.ModelSerializer):
     nombre = serializers.CharField(max_length=40, validators=[validar_nombre_persona])
     apellido = serializers.CharField(max_length=40, validators=[validar_nombre_persona])
@@ -73,6 +75,7 @@ class HuespedSerializer(serializers.ModelSerializer):
         return value.strip().lower()
 
 
+# Serializer Reserva
 class ReservaSerializer(serializers.ModelSerializer):
     personas = serializers.IntegerField(min_value=1, max_value=6)
     observaciones = serializers.CharField(max_length=200, required=False, allow_blank=True, default="")
@@ -85,6 +88,7 @@ class ReservaSerializer(serializers.ModelSerializer):
                   "personas", "estado", "observaciones", "noches", "total"]
         read_only_fields = ["id", "total", "noches"]
 
+    # validaciones
     def validate(self, attrs):
         base = self.instance
         def valor(campo, defecto=None):

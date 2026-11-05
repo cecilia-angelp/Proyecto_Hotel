@@ -6,6 +6,7 @@ from rest_framework import status
 from .models import Habitacion
 
 
+# API Habitaciones
 class HabitacionAPITests(APITestCase):
     def setUp(self):
         self.user = get_user_model().objects.create_user(username="prueba", password="ClaveSegura123!")
@@ -128,9 +129,8 @@ class HabitacionAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
+# Web Habitaciones
 class HabitacionWebTests(TestCase):
-    """Pruebas de la parte web: login, acceso restringido y CRUD con validaciones."""
-
     def setUp(self):
         self.user = get_user_model().objects.create_user(username="recepcion", password="ClaveSegura123!")
         self.room = Habitacion.objects.create(numero=201, tipo="Suite", precio=90000)
@@ -164,16 +164,16 @@ class HabitacionWebTests(TestCase):
     def test_crear_con_datos_invalidos_no_guarda(self):
         self.entrar()
         invalidos = [
-            {"numero": "", "tipo": "Doble", "precio": "50000"},     # numero vacio
-            {"numero": "abc", "tipo": "Doble", "precio": "50000"},  # numero no entero
-            {"numero": "-5", "tipo": "Doble", "precio": "50000"},   # numero negativo
-            {"numero": "300", "tipo": "A", "precio": "50000"},      # tipo muy corto
-            {"numero": "300", "tipo": "Doble", "precio": "0"},      # precio cero
-            {"numero": "300", "tipo": "Doble", "precio": "x"},      # precio no entero
-            {"numero": "201", "tipo": "Doble", "precio": "50000"},  # numero repetido
-            {"numero": "10000", "tipo": "Doble", "precio": "50000"},  # numero sobre el limite
-            {"numero": "300", "tipo": "x" * 31, "precio": "50000"},  # tipo sobre 30 caracteres
-            {"numero": "300", "tipo": "Doble", "precio": "10000000"},  # precio sobre el limite
+            {"numero": "", "tipo": "Doble", "precio": "50000"},
+            {"numero": "abc", "tipo": "Doble", "precio": "50000"},
+            {"numero": "-5", "tipo": "Doble", "precio": "50000"},
+            {"numero": "300", "tipo": "A", "precio": "50000"},
+            {"numero": "300", "tipo": "Doble", "precio": "0"},
+            {"numero": "300", "tipo": "Doble", "precio": "x"},
+            {"numero": "201", "tipo": "Doble", "precio": "50000"},
+            {"numero": "10000", "tipo": "Doble", "precio": "50000"},
+            {"numero": "300", "tipo": "x" * 31, "precio": "50000"},
+            {"numero": "300", "tipo": "Doble", "precio": "10000000"},
         ]
         for datos in invalidos:
             response = self.client.post("/habitaciones/crear/", datos)
@@ -189,7 +189,7 @@ class HabitacionWebTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.room.refresh_from_db()
         self.assertEqual(self.room.tipo, "Presidencial")
-        self.assertFalse(self.room.disponible)  # checkbox sin marcar = no disponible
+        self.assertFalse(self.room.disponible)
 
     def test_eliminar_habitacion(self):
         self.entrar()
@@ -204,7 +204,7 @@ class HabitacionWebTests(TestCase):
         response = self.client.post("/ingreso/", {"username": "recepcion", "password": "x" * 31})
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.context["form"].errors)
-        self.assertEqual(self.client.get("/").status_code, 302)  # sigue sin sesion
+        self.assertEqual(self.client.get("/").status_code, 302)
 
     def test_despues_de_salir_no_se_puede_editar_ni_eliminar(self):
         self.entrar()
@@ -223,7 +223,6 @@ class HabitacionWebTests(TestCase):
         self.assertIn("no-store", response["Cache-Control"])
 
 
-# ======================= HUÉSPEDES Y RESERVAS =======================
 from datetime import date, timedelta
 
 from .models import Huesped, Reserva
@@ -234,6 +233,7 @@ def _fechas(dias_entrada=5, noches=3):
     return entrada, entrada + timedelta(days=noches)
 
 
+# API Huespedes
 class HuespedAPITests(APITestCase):
     def setUp(self):
         user = get_user_model().objects.create_user(username="prueba", password="ClaveSegura123!")
@@ -275,6 +275,7 @@ class HuespedAPITests(APITestCase):
         self.assertEqual(self.client.get(f"/api/huespedes/{pk}/").status_code, 404)
 
 
+# API Reservas
 class ReservaAPITests(APITestCase):
     def setUp(self):
         user = get_user_model().objects.create_user(username="prueba", password="ClaveSegura123!")
@@ -305,16 +306,16 @@ class ReservaAPITests(APITestCase):
     def test_reglas_de_fechas_y_datos(self):
         e, s = _fechas()
         casos = [
-            self._datos(fecha_salida=e.isoformat()),                              # misma fecha
-            self._datos(fecha_salida=(e - timedelta(days=1)).isoformat()),        # salida antes
-            self._datos(fecha_entrada=(date.today() - timedelta(days=1)).isoformat()),  # pasado
-            self._datos(fecha_salida=(e + timedelta(days=31)).isoformat()),       # > 30 noches
+            self._datos(fecha_salida=e.isoformat()),
+            self._datos(fecha_salida=(e - timedelta(days=1)).isoformat()),
+            self._datos(fecha_entrada=(date.today() - timedelta(days=1)).isoformat()),
+            self._datos(fecha_salida=(e + timedelta(days=31)).isoformat()),
             self._datos(personas=0), self._datos(personas=7), self._datos(personas="x"),
             self._datos(habitacion=9999), self._datos(huesped=9999),
-            self._datos(habitacion=self.hab_off.pk),                              # no disponible
+            self._datos(habitacion=self.hab_off.pk),
             self._datos(observaciones="x" * 201),
             self._datos(fecha_entrada="31-12-2026"),
-            self._datos(estado="confirmada"),                                    # nueva debe ser pendiente
+            self._datos(estado="confirmada"),
         ]
         for datos in casos:
             self.assertEqual(self.client.post("/api/reservas/", datos, format="json").status_code, 400, datos)
@@ -323,7 +324,6 @@ class ReservaAPITests(APITestCase):
     def test_no_permite_choque_de_fechas(self):
         self.assertEqual(self.client.post("/api/reservas/", self._datos(), format="json").status_code, 201)
         self.assertEqual(self.client.post("/api/reservas/", self._datos(), format="json").status_code, 400)
-        # Pegada al final (sale el mismo día que entra otra) sí es válida
         e, s = _fechas()
         r = self.client.post("/api/reservas/", self._datos(fecha_entrada=s.isoformat(),
                              fecha_salida=(s + timedelta(days=2)).isoformat()), format="json")
@@ -334,7 +334,7 @@ class ReservaAPITests(APITestCase):
         self.assertEqual(self.client.put(f"/api/reservas/{pk}/", self._datos(estado="finalizada"), format="json").status_code, 400)
         self.assertEqual(self.client.put(f"/api/reservas/{pk}/", self._datos(estado="confirmada"), format="json").status_code, 200)
         self.assertEqual(self.client.put(f"/api/reservas/{pk}/", self._datos(estado="en_curso"), format="json").status_code, 200)
-        self.assertEqual(self.client.delete(f"/api/reservas/{pk}/").status_code, 409)   # en curso
+        self.assertEqual(self.client.delete(f"/api/reservas/{pk}/").status_code, 409)
         self.assertEqual(self.client.put(f"/api/reservas/{pk}/", self._datos(estado="finalizada"), format="json").status_code, 200)
         self.assertEqual(self.client.put(f"/api/reservas/{pk}/", self._datos(estado="confirmada"), format="json").status_code, 400)
         self.assertEqual(self.client.delete(f"/api/reservas/{pk}/").status_code, 204)
@@ -347,6 +347,7 @@ class ReservaAPITests(APITestCase):
         self.assertTrue(Habitacion.objects.filter(pk=self.hab.pk).exists())
 
 
+# Limites y login
 class LimitesYLoginTests(TestCase):
     def setUp(self):
         self.user = get_user_model().objects.create_user(username="prueba", password="ClaveSegura123!")
@@ -361,7 +362,7 @@ class LimitesYLoginTests(TestCase):
         self.assertNotContains(r, "nav-exit")
         self.client.force_login(self.user)
         r = self.client.get("/ingreso/")
-        self.assertRedirects(r, "/", fetch_redirect_response=False)   # no se queda en el login
+        self.assertRedirects(r, "/", fetch_redirect_response=False)
 
     def test_rutas_protegidas_sin_sesion(self):
         for url in ["/", "/habitaciones/", "/huespedes/", "/reservas/", "/huespedes/crear/", "/reservas/crear/"]:
@@ -396,17 +397,14 @@ class LimitesYLoginTests(TestCase):
                                                   "fecha_salida": s, "personas": "2", "observaciones": ""})
         self.assertEqual(r.status_code, 302)
         self.assertEqual(Reserva.objects.get().total, 3000)
-        # misma reserva otra vez -> choque, no se guarda
         r = self.client.post("/reservas/crear/", {"habitacion": hab.pk, "huesped": h.pk, "fecha_entrada": e,
                                                   "fecha_salida": s, "personas": "2"})
         self.assertEqual(r.status_code, 200)
         self.assertContains(r, "ya está reservada")
         self.assertEqual(Reserva.objects.count(), 1)
-        # eliminar habitación con reservas: mensaje, no error
         r = self.client.post(f"/habitaciones/eliminar/{hab.pk}/", follow=True)
         self.assertContains(r, "tiene reservas asociadas")
         self.assertTrue(Habitacion.objects.filter(pk=hab.pk).exists())
-        # páginas cargan
         for url in ["/huespedes/", "/reservas/", "/huespedes/crear/", "/reservas/crear/",
                     f"/huespedes/editar/{h.pk}/", f"/reservas/editar/{Reserva.objects.get().pk}/",
                     f"/reservas/eliminar/{Reserva.objects.get().pk}/", f"/huespedes/eliminar/{h.pk}/"]:

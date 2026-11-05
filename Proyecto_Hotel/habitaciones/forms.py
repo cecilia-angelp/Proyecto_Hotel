@@ -7,13 +7,8 @@ from .models import Habitacion, Huesped, Reserva
 from .validators import normalizar_rut, normalizar_telefono, validar_rut, validar_telefono
 
 
+# Formulario Habitacion
 class HabitacionForm(forms.ModelForm):
-    """Formulario único para crear y editar habitaciones.
-
-    Usa las mismas reglas del modelo (los validators de models.py), así que
-    la web y la API validan exactamente lo mismo.
-    """
-
     class Meta:
         model = Habitacion
         fields = ["numero", "tipo", "precio", "disponible"]
@@ -33,12 +28,11 @@ class HabitacionForm(forms.ModelForm):
         }
 
     def clean_tipo(self):
-        # El validador del modelo (validar_tipo) revisa letras/números; aquí solo se limpian espacios.
         return " ".join(self.cleaned_data["tipo"].split())
 
 
+# Lista de errores
 def lista_de_errores(form):
-    """Convierte form.errors en una lista de textos simples para la plantilla."""
     errores = []
     for campo, mensajes in form.errors.items():
         for mensaje in mensajes:
@@ -49,9 +43,8 @@ def lista_de_errores(form):
     return errores
 
 
+# Login
 class LoginForm(AuthenticationForm):
-    """Login con límite de largo (usuario y contraseña de hasta 30 caracteres)."""
-
     username = UsernameField(
         label="Usuario",
         max_length=30,
@@ -66,6 +59,7 @@ class LoginForm(AuthenticationForm):
     )
 
 
+# Formulario Huesped
 class HuespedForm(forms.ModelForm):
     rut = forms.CharField(
         label="RUT", max_length=12, validators=[validar_rut],
@@ -102,6 +96,7 @@ class HuespedForm(forms.ModelForm):
         return self.cleaned_data["email"].strip().lower()
 
 
+# Formulario Reserva
 class ReservaForm(forms.ModelForm):
     class Meta:
         model = Reserva
@@ -127,7 +122,8 @@ class ReservaForm(forms.ModelForm):
             posibles = [self.instance.estado] + Reserva.TRANSICIONES[self.instance.estado]
             self.fields["estado"].choices = [(v, e) for v, e in Reserva.ESTADOS if v in posibles]
         else:
-            del self.fields["estado"]            # al crear siempre queda "pendiente"
+            # el estado solo se elige al editar
+            del self.fields["estado"]
         self.fields["habitacion"].queryset = habitaciones.distinct().order_by("numero")
         self.fields["habitacion"].empty_label = "— Elige una habitación —"
         self.fields["habitacion"].label_from_instance = lambda h: f"Habitación {h.numero} · {h.tipo} · ${h.precio:,}".replace(",", ".")

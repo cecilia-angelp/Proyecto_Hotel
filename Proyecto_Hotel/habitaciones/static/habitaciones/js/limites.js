@@ -1,13 +1,4 @@
-/* Límites físicos de los formularios: no deja escribir de más ni caracteres no permitidos.
-   (El servidor igual valida todo; esto solo ayuda a que el usuario no se equivoque.)
-   Atributos usados en los <input>:
-     data-solo-digitos      -> solo números (respeta maxlength, sin ceros a la izquierda)
-     data-solo-letras       -> letras, espacios, guion y apóstrofe
-     data-tipo-habitacion   -> letras, números, espacios y guion
-     data-rut               -> dígitos, K, puntos y guion
-     data-telefono          -> dígitos, + y espacios
-     data-contador          -> muestra "n/máx" bajo el campo
-*/
+// Limites de los formularios
 (function () {
     "use strict";
 
@@ -66,7 +57,7 @@
         "[data-solo-digitos],[data-solo-letras],[data-tipo-habitacion],[data-rut],[data-telefono],[data-contador]"
     ).forEach(iniciar);
 
-    /* Fechas: la salida no puede ser anterior a la entrada */
+    // Fechas
     var entrada = document.getElementById("id_fecha_entrada");
     var salida = document.getElementById("id_fecha_salida");
     if (entrada && salida) {

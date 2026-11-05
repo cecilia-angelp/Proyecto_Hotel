@@ -11,11 +11,11 @@ from .models import Habitacion, Huesped, Reserva
 from .serializers import HabitacionSerializer, HuespedSerializer, ReservaSerializer
 
 
+# Token (login API)
 @api_view(["POST"])
 @authentication_classes([])
 @permission_classes([AllowAny])
 def api_login(request):
-    """Entrega un token al validar usuario y contraseña."""
     username = str(request.data.get("username", "")).strip()
     password = request.data.get("password", "")
     if not username or not password:
@@ -43,6 +43,7 @@ def api_login(request):
     )
 
 
+# Logout API
 @api_view(["POST"])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -51,14 +52,19 @@ def api_logout(request):
     return Response({"detail": "Sesión API cerrada correctamente."}, status=status.HTTP_200_OK)
 
 
+# CRUD API Habitaciones
+
+# GET y POST
 @api_view(["GET", "POST"])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def api_habitaciones(request):
+    # GET
     if request.method == "GET":
         habitaciones = Habitacion.objects.all().order_by("numero")
         return Response(HabitacionSerializer(habitaciones, many=True).data)
 
+    # POST
     serializer = HabitacionSerializer(data=request.data)
     if serializer.is_valid():
         habitacion = serializer.save()
@@ -66,6 +72,7 @@ def api_habitaciones(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+# GET, PUT y DELETE por id
 @api_view(["GET", "PUT", "DELETE"])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -75,9 +82,11 @@ def api_habitacion_detalle(request, pk):
     except Habitacion.DoesNotExist:
         return Response({"error": "La habitación no existe."}, status=status.HTTP_404_NOT_FOUND)
 
+    # GET
     if request.method == "GET":
         return Response(HabitacionSerializer(habitacion).data)
 
+    # PUT
     if request.method == "PUT":
         serializer = HabitacionSerializer(habitacion, data=request.data)
         if serializer.is_valid():
@@ -85,6 +94,7 @@ def api_habitacion_detalle(request, pk):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    # DELETE
     try:
         habitacion.delete()
     except ProtectedError:
@@ -95,9 +105,12 @@ def api_habitacion_detalle(request, pk):
     return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+# Funciones comunes del CRUD
 def _crud_coleccion(request, modelo, serializer_cls, orden):
+    # GET
     if request.method == "GET":
         return Response(serializer_cls(modelo.objects.all().order_by(*orden), many=True).data)
+    # POST
     serializer = serializer_cls(data=request.data)
     if serializer.is_valid():
         objeto = serializer.save()
@@ -111,9 +124,11 @@ def _crud_detalle(request, pk, modelo, serializer_cls, nombre, error_borrado):
     except modelo.DoesNotExist:
         return Response({"error": f"{nombre} no existe."}, status=status.HTTP_404_NOT_FOUND)
 
+    # GET
     if request.method == "GET":
         return Response(serializer_cls(objeto).data)
 
+    # PUT
     if request.method == "PUT":
         serializer = serializer_cls(objeto, data=request.data)
         if serializer.is_valid():
@@ -121,6 +136,7 @@ def _crud_detalle(request, pk, modelo, serializer_cls, nombre, error_borrado):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    # DELETE
     try:
         objeto.delete()
     except ProtectedError:
@@ -128,6 +144,7 @@ def _crud_detalle(request, pk, modelo, serializer_cls, nombre, error_borrado):
     return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+# CRUD API Huespedes
 @api_view(["GET", "POST"])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -135,6 +152,7 @@ def api_huespedes(request):
     return _crud_coleccion(request, Huesped, HuespedSerializer, ["apellido", "nombre"])
 
 
+# Huesped por id
 @api_view(["GET", "PUT", "DELETE"])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -143,6 +161,7 @@ def api_huesped_detalle(request, pk):
                          "No se puede eliminar: el huésped tiene reservas asociadas.")
 
 
+# CRUD API Reservas
 @api_view(["GET", "POST"])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -150,6 +169,7 @@ def api_reservas(request):
     return _crud_coleccion(request, Reserva, ReservaSerializer, ["-fecha_entrada", "-id"])
 
 
+# Reserva por id
 @api_view(["GET", "PUT", "DELETE"])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])

@@ -23,7 +23,7 @@
         if (event.target === overlay) closeSecretDoor();
     });
 
-    // Easter egg: Konami Code.
+    // Secuencia secreta
     const code = ["ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown", "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight"];
     let progress = 0;
 

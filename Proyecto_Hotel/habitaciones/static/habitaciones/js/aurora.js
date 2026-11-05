@@ -1,25 +1,24 @@
-/* HOTEL AURORA · ambiente: música, sonidos, polvo flotante y puertas de transición.
-   Todo es decorativo: si algo aquí falla, el sistema (login, CRUD, API) sigue funcionando. */
+// Ambiente (musica y efectos)
 (function () {
     "use strict";
 
-    // ---------- Utilidades seguras (el navegador puede bloquear el almacenamiento) ----------
+    // Almacenamiento
     function lsGet(k) { try { return window.localStorage.getItem(k); } catch (e) { return null; } }
-    function lsSet(k, v) { try { window.localStorage.setItem(k, v); } catch (e) { /* nada */ } }
+    function lsSet(k, v) { try { window.localStorage.setItem(k, v); } catch (e) {} }
     function ssGet(k) { try { return window.sessionStorage.getItem(k); } catch (e) { return null; } }
-    function ssSet(k, v) { try { window.sessionStorage.setItem(k, v); } catch (e) { /* nada */ } }
-    function ssDel(k) { try { window.sessionStorage.removeItem(k); } catch (e) { /* nada */ } }
+    function ssSet(k, v) { try { window.sessionStorage.setItem(k, v); } catch (e) {} }
+    function ssDel(k) { try { window.sessionStorage.removeItem(k); } catch (e) {} }
 
     var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     var isLogin = document.body.classList.contains("login-page");
 
-    // ---------- Sonido ----------
+    // Sonido
     var bgm = document.getElementById("bgm");
     var toggle = document.getElementById("soundToggle");
     var MUSIC_VOLUME = 0.32;
     var muted = lsGet("aurora_muted") === "1";
     var unlocked = false;
-    var ctx = null;                       // Web Audio (efectos sintetizados, sin archivos)
+    var ctx = null;
     var track = bgm ? (bgm.dataset.track || "hotel") : "hotel";
     var timeKey = "aurora_t_" + track;
 
@@ -49,7 +48,7 @@
                 if (bgm.duration && saved < bgm.duration - 2 && Math.abs(bgm.currentTime - saved) > 1.5) {
                     bgm.currentTime = saved;
                 }
-            } catch (e) { /* algunos servidores no permiten saltar: se ignora */ }
+            } catch (e) {}
         };
         if (bgm.readyState >= 1) apply(); else bgm.addEventListener("loadedmetadata", apply, { once: true });
         bgm.addEventListener("canplaythrough", apply, { once: true });
@@ -61,7 +60,7 @@
         var p = bgm.play();
         if (p && p.then) {
             p.then(function () { unlocked = true; paintToggle(); fadeTo(MUSIC_VOLUME, 1800); })
-             .catch(function () { /* el navegador exige un clic primero: se reintenta con el primer gesto */ });
+             .catch(function () {});
         }
     }
 
@@ -85,7 +84,7 @@
     if (bgm) {
         bgm.volume = 0;
         restorePosition();
-        playMusic();                                         // intento inmediato (a veces el navegador lo permite)
+        playMusic();
         ["pointerdown", "keydown", "touchstart"].forEach(function (ev) { document.addEventListener(ev, unlock, { passive: true }); });
         setInterval(savePosition, 1000);
         window.addEventListener("pagehide", savePosition);
@@ -105,10 +104,10 @@
     }
     paintToggle();
 
-    // ---------- Efectos de sonido sintetizados ----------
+    // Efectos
     function canSfx() { return ctx && ctx.state === "running" && !muted; }
 
-    function tick() {                       // roce suave al pasar el mouse sobre un botón
+    function tick() {
         if (!canSfx()) return;
         var t = ctx.currentTime;
         var o = ctx.createOscillator(), f = ctx.createBiquadFilter(), g = ctx.createGain();
@@ -123,7 +122,7 @@
         o.start(t); o.stop(t + 0.12);
     }
 
-    function thump(at, strength) {          // un golpe de madera
+    function thump(at, strength) {
         var t = at;
         var o = ctx.createOscillator(), g = ctx.createGain();
         o.type = "sine";
@@ -145,7 +144,7 @@
         n.start(t);
     }
 
-    function knock(times) {                 // toc, toc
+    function knock(times) {
         if (!canSfx()) return;
         var n = times || 2, t = ctx.currentTime + 0.01;
         for (var i = 0; i < n; i++) { thump(t + i * 0.16, 0.45); }
@@ -168,20 +167,20 @@
         if (el && canSfx()) { thump(ctx.currentTime + 0.005, 0.28); }
     });
 
-    // ---------- Puertas de transición: se cierran al entrar y se abren en el hotel ----------
+    // Puertas
     var doors = document.getElementById("doorTransition");
     var DOOR_FLAG = "aurora_door";
 
     if (isLogin) {
-        ssDel(DOOR_FLAG);                   // si estás viendo el login, no hay entrada pendiente
+        ssDel(DOOR_FLAG);
         var form = document.getElementById("loginForm");
         if (form) {
             var sending = false;
             form.addEventListener("submit", function (e) {
-                if (sending || reduceMotion || !doors || !form.checkValidity()) { return; }   // envío normal
+                if (sending || reduceMotion || !doors || !form.checkValidity()) { return; }
                 sending = true;
                 e.preventDefault();
-                try { ensureContext(); knock(2); } catch (err) { /* nada */ }
+                try { ensureContext(); knock(2); } catch (err) {}
                 ssSet(DOOR_FLAG, "1");
                 doors.classList.add("is-active");
                 void doors.offsetWidth;
@@ -193,7 +192,7 @@
                     HTMLFormElement.prototype.submit.call(form);
                 }
                 setTimeout(go, 950);
-                setTimeout(go, 2500);       // seguro anti-bloqueo: nunca se queda sin enviar
+                setTimeout(go, 2500);
             });
         }
     } else if (doors && ssGet(DOOR_FLAG) === "1" && !reduceMotion) {
@@ -201,12 +200,12 @@
         doors.classList.add("is-active", "start-closed");
         void doors.offsetWidth;
         requestAnimationFrame(function () {
-            doors.classList.remove("start-closed");          // al soltar, las hojas se abren
+            doors.classList.remove("start-closed");
             setTimeout(function () { doors.classList.remove("is-active"); }, 1100);
         });
     }
 
-    // ---------- Polvo flotante en la luz ----------
+    // Polvo
     var canvas = document.getElementById("dustCanvas");
     if (canvas && canvas.getContext && !reduceMotion) {
         var c = canvas.getContext("2d");

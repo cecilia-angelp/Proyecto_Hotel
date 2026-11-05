@@ -10,6 +10,7 @@ from .forms import HabitacionForm, HuespedForm, ReservaForm, lista_de_errores
 from .models import Habitacion, Huesped, Reserva
 
 
+# Inicio
 @never_cache
 @login_required
 def inicio(request):
@@ -26,6 +27,9 @@ def inicio(request):
     return render(request, "habitaciones/inicio.html", context)
 
 
+# CRUD Habitaciones
+
+# Listar
 @never_cache
 @login_required
 def lista_habitaciones(request):
@@ -33,6 +37,7 @@ def lista_habitaciones(request):
     return render(request, "habitaciones/lista.html", {"habitaciones": habitaciones})
 
 
+# Crear
 @never_cache
 @login_required
 def crear_habitacion(request):
@@ -48,6 +53,7 @@ def crear_habitacion(request):
     return render(request, "habitaciones/crear.html")
 
 
+# Editar
 @never_cache
 @login_required
 def editar_habitacion(request, pk):
@@ -59,7 +65,6 @@ def editar_habitacion(request, pk):
             form.save()
             messages.success(request, "La habitación fue modificada correctamente.")
             return redirect("lista_habitaciones")
-        # Importante: tras un form inválido, "habitacion" puede traer valores sin guardar.
         habitacion = get_object_or_404(Habitacion, pk=pk)
         context = {
             "habitacion": habitacion,
@@ -71,6 +76,7 @@ def editar_habitacion(request, pk):
     return render(request, "habitaciones/editar.html", {"habitacion": habitacion})
 
 
+# Eliminar
 @never_cache
 @login_required
 def eliminar_habitacion(request, pk):
@@ -93,14 +99,16 @@ def eliminar_habitacion(request, pk):
     return render(request, "habitaciones/eliminar.html", {"habitacion": habitacion})
 
 
-# ----------------------------- HUÉSPEDES -----------------------------
+# CRUD Huespedes
 
+# Listar
 @never_cache
 @login_required
 def lista_huespedes(request):
     return render(request, "habitaciones/huesped_lista.html", {"huespedes": Huesped.objects.all()})
 
 
+# Crear
 @never_cache
 @login_required
 def crear_huesped(request):
@@ -115,6 +123,7 @@ def crear_huesped(request):
     return render(request, "habitaciones/huesped_form.html")
 
 
+# Editar
 @never_cache
 @login_required
 def editar_huesped(request, pk):
@@ -131,6 +140,7 @@ def editar_huesped(request, pk):
     return render(request, "habitaciones/huesped_form.html", {"huesped": huesped})
 
 
+# Eliminar
 @never_cache
 @login_required
 def eliminar_huesped(request, pk):
@@ -151,8 +161,9 @@ def eliminar_huesped(request, pk):
     return render(request, "habitaciones/huesped_eliminar.html", {"huesped": huesped})
 
 
-# ----------------------------- RESERVAS -----------------------------
+# CRUD Reservas
 
+# Datos para el formulario
 def _contexto_reserva(form, reserva=None, datos=None):
     return {
         "form": form,
@@ -164,6 +175,7 @@ def _contexto_reserva(form, reserva=None, datos=None):
     }
 
 
+# Listar
 @never_cache
 @login_required
 def lista_reservas(request):
@@ -171,6 +183,7 @@ def lista_reservas(request):
     return render(request, "habitaciones/reserva_lista.html", {"reservas": reservas})
 
 
+# Crear
 @never_cache
 @login_required
 def crear_reserva(request):
@@ -184,6 +197,7 @@ def crear_reserva(request):
     return render(request, "habitaciones/reserva_form.html", _contexto_reserva(ReservaForm()))
 
 
+# Editar
 @never_cache
 @login_required
 def editar_reserva(request, pk):
@@ -203,6 +217,7 @@ def editar_reserva(request, pk):
                   _contexto_reserva(ReservaForm(instance=reserva), reserva))
 
 
+# Eliminar
 @never_cache
 @login_required
 def eliminar_reserva(request, pk):

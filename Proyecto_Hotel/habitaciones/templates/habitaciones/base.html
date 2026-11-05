@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#0b0908">
     <title>{% block title %}Hotel Aurora{% endblock %}</title>
-    <!-- Tipografía: si no hay internet, el navegador usa Georgia automáticamente -->
+    <!-- Fuentes -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&display=swap" rel="stylesheet">
@@ -15,7 +15,7 @@
 </head>
 <body class="{% if request.resolver_match.url_name == 'login' %}login-page{% else %}app-page{% if request.resolver_match.url_name == 'inicio' %} home-page{% endif %}{% endif %}">
 
-    <!-- Escenario: imagen de fondo, luz, polvo y viñeta -->
+    <!-- Fondo -->
     <div class="scene-background" aria-hidden="true">
         <img class="scene-img" alt=""
              src="{% if request.resolver_match.url_name == 'login' %}{% static 'habitaciones/img/lobby-login.jpg' %}{% else %}{% static 'habitaciones/img/lobby-menu.jpg' %}{% endif %}?v=3">
@@ -26,7 +26,7 @@
     <div class="ambient ambient-one"></div>
     <div class="ambient ambient-two"></div>
 
-    <!-- Puertas de transición (decorativas) -->
+    <!-- Puertas -->
     <div class="door-transition" id="doorTransition" aria-hidden="true">
         <div class="door-leaf door-leaf-left"></div>
         <div class="door-leaf door-leaf-right"></div>
@@ -80,7 +80,7 @@
         </div>
     </div>
 
-    <!-- Música ambiente: el login usa un tema y el resto del hotel usa otro -->
+    <!-- Musica -->
     <audio id="bgm" loop preload="auto"
            src="{% if request.resolver_match.url_name == 'login' %}{% static 'habitaciones/audio/doors-ost1.mp3' %}{% else %}{% static 'habitaciones/audio/doors2.mp3' %}{% endif %}"
            data-track="{% if request.resolver_match.url_name == 'login' %}login{% else %}hotel{% endif %}"></audio>
@@ -98,8 +98,7 @@
     <script src="{% static 'habitaciones/js/aurora.js' %}"></script>
     <script src="{% static 'habitaciones/js/limites.js' %}"></script>
     <script>
-        // Botón "Atrás" tras cerrar sesión: si el navegador muestra una copia guardada,
-        // se vuelve a pedir la página al servidor (que redirige al login si no hay sesión).
+        // Boton atras
         window.addEventListener("pageshow", function (event) {
             var nav = performance.getEntriesByType && performance.getEntriesByType("navigation")[0];
             if (event.persisted || (nav && nav.type === "back_forward")) { window.location.reload(); }

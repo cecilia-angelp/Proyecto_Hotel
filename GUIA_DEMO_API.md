@@ -1,13 +1,13 @@
 # Guía de demostración de la API (CMD de Windows)
 
-Con el servidor corriendo (`python manage.py runserver`) y un superusuario creado. Cambia `admin` / `TuClave` por tus datos.
+Con el servidor corriendo (`python manage.py runserver`) y un superusuario creado. Reemplazar `admin` / `TuClave` por el usuario creado.
 
 **1. Pedir el token (login API)**
 ```bat
 curl -X POST http://127.0.0.1:8000/api/token/ -H "Content-Type: application/json" -d "{\"username\":\"admin\",\"password\":\"TuClave\"}"
 ```
 Respuesta esperada (200): `{"token":"abc123...","user":"admin","detail":"Autenticación correcta."}`
-Copia el valor del token y úsalo abajo en lugar de `TU_TOKEN`.
+Usar el valor del token en lugar de `TU_TOKEN`.
 
 **2. GET – listar**
 ```bat
@@ -48,7 +48,7 @@ Tras cada POST / PUT / DELETE, recarga `http://127.0.0.1:8000/habitaciones/` y r
 
 ---
 
-## Huéspedes y Reservas (nuevo)
+## Huéspedes y Reservas
 
 Todas llevan el header `Authorization: Token <key>` (sin token → 401).
 

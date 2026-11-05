@@ -298,7 +298,7 @@ button, input { font: inherit; }
 }
 
 
-/* Movimiento ambiental sutil: atmósfera del Hotel Aurora sin depender de GIF externos. */
+/* Animaciones */
 .ambient-one { animation: aurora-drift 18s ease-in-out infinite alternate; }
 .ambient-two { animation: aurora-drift-reverse 22s ease-in-out infinite alternate; }
 @keyframes aurora-drift {
@@ -314,7 +314,7 @@ button, input { font: inherit; }
 }
 
 
-/* Fondos fotográficos para el acceso y la página de inicio */
+/* Fondos */
 .scene-background {
     position: fixed;
     inset: 0;

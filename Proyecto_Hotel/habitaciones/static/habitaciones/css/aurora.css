@@ -1,7 +1,4 @@
-/* ==========================================================================
-   HOTEL AURORA · capa visual (se carga DESPUÉS de estilo.css y lo sobreescribe)
-   Solo cambia el aspecto: no toca formularios, rutas ni lógica del sistema.
-   ========================================================================== */
+/* Aurora */
 
 :root {
     --candle: #ffd48a;
@@ -10,11 +7,11 @@
     --font-body: Georgia, "Times New Roman", serif;
 }
 
-/* ---------- Fondo: imagen + luz + polvo + viñeta ---------- */
+/* Fondo */
 body { background: #090706; }
-body::before { opacity: .11; }              /* textura de trama más suave */
+body::before { opacity: .11; }
 
-/* La foto va en una etiqueta <img> (más fiable que background-image con animación) */
+/* Imagen */
 .scene-background {
     z-index: 0;
     overflow: hidden;
@@ -28,7 +25,7 @@ body::before { opacity: .11; }              /* textura de trama más suave */
     transform-origin: center center;
     animation: scene-breathe 38s ease-in-out infinite alternate;
 }
-.scene-background::after {            /* oscurece la foto para que se lea el texto */
+.scene-background::after {
     content: ""; position: absolute; inset: 0;
 }
 .login-page .scene-background::after { background: linear-gradient(rgba(6, 4, 3, .24), rgba(6, 4, 3, .50)); }
@@ -69,19 +66,19 @@ body::before { opacity: .11; }              /* textura de trama más suave */
     background: radial-gradient(ellipse at center, transparent 42%, rgba(0, 0, 0, .42) 76%, rgba(0, 0, 0, .82) 100%);
 }
 
-/* ---------- Tipografía ---------- */
+/* Tipografia */
 .brand-copy strong, .eyebrow, .section-heading h2,
 .stat-card strong, .stat-label, .room-number, .room-card h3, .door-number,
 .door-sign, .empty-state h3, .secret-message h2, .room-table th, .login-title, .button, .nav-button {
     font-family: var(--font-title);
 }
-/* Títulos grandes (h1): tipografía original Georgia, como estaban */
+/* Titulos */
 .hero h1, .page-heading h1, .form-page h1, .delete-card h1 { font-family: Georgia, "Times New Roman", serif; }
 .section-heading h2 { font-weight: 600; letter-spacing: .8px; }
 .eyebrow { letter-spacing: 3.5px; text-shadow: 0 0 14px rgba(229, 199, 127, .35); }
 .hero-text, .page-heading p:not(.eyebrow) { text-shadow: 0 2px 14px rgba(0, 0, 0, .8); }
 
-/* ---------- Barra superior ---------- */
+/* Barra superior */
 .navbar {
     background: linear-gradient(180deg, rgba(8, 6, 5, .96), rgba(8, 6, 5, .82));
     border-bottom: 1px solid rgba(199, 154, 80, .35);
@@ -119,7 +116,7 @@ body::before { opacity: .11; }              /* textura de trama más suave */
 .nav-exit { margin-left: 10px; padding: 9px 15px; cursor: pointer; color: #e7b4ab !important; border-color: rgba(166, 75, 66, .7); background: rgba(87, 27, 24, .22); }
 .nav-exit:hover { box-shadow: 0 0 20px rgba(200, 70, 55, .35); background: rgba(120, 35, 30, .35); }
 
-/* ---------- Entrada de contenido ---------- */
+/* Contenido */
 .main-container > * { animation: rise .8s cubic-bezier(.2, .7, .2, 1) both; }
 .main-container > *:nth-child(2) { animation-delay: .08s; }
 .main-container > *:nth-child(3) { animation-delay: .16s; }
@@ -127,13 +124,13 @@ body::before { opacity: .11; }              /* textura de trama más suave */
 .main-container > *:nth-child(5) { animation-delay: .32s; }
 @keyframes rise { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
 
-/* ---------- Portada ---------- */
+/* Portada */
 .hero h1 { text-shadow: 0 4px 30px rgba(0, 0, 0, .8); }
 .hero h1 span {
     background: linear-gradient(180deg, #fff3cf 0%, #f0d08a 50%, #d4a34a 100%);
     -webkit-background-clip: text; background-clip: text; color: transparent;
     filter: drop-shadow(0 0 16px rgba(255, 196, 110, .28));
-    text-shadow: none;   /* la sombra del h1 opacaba el degradado dorado */
+    text-shadow: none;
 }
 
 .door-card { perspective: 1000px; }
@@ -167,7 +164,7 @@ body::before { opacity: .11; }              /* textura de trama más suave */
 @keyframes shine { 0%, 55% { left: -60%; } 80%, 100% { left: 130%; } }
 .door-caption { text-shadow: 0 1px 8px rgba(0, 0, 0, .9); }
 
-/* ---------- Paneles de cristal oscuro ---------- */
+/* Paneles */
 .stat-card, .room-card, .form-card, .delete-card, .empty-state, .table-wrapper {
     backdrop-filter: blur(7px); -webkit-backdrop-filter: blur(7px);
 }
@@ -183,7 +180,7 @@ body::before { opacity: .11; }              /* textura de trama más suave */
 .stat-card.occupied strong { color: #e0a39a; }
 
 .room-card { position: relative; overflow: hidden; transition: transform .25s ease, border-color .3s ease, box-shadow .3s ease; }
-.room-card::after {  /* rendija de luz bajo la puerta */
+.room-card::after {
     content: ""; position: absolute; left: 12%; right: 12%; bottom: 0; height: 3px;
     background: linear-gradient(90deg, transparent, rgba(255, 205, 125, .75), transparent);
     opacity: .5; transition: opacity .3s ease;
@@ -213,7 +210,7 @@ body::before { opacity: .11; }              /* textura de trama más suave */
 .alert { backdrop-filter: blur(6px); animation: alert-in .5s ease both; }
 @keyframes alert-in { from { opacity: 0; transform: translateX(-18px); } to { opacity: 1; transform: none; } }
 
-/* ---------- Botones ---------- */
+/* Botones */
 .button {
     position: relative; overflow: hidden; text-transform: uppercase;
     font-size: 11.5px; letter-spacing: 1.8px; font-weight: 600;
@@ -233,7 +230,7 @@ body::before { opacity: .11; }              /* textura de trama más suave */
 .button.secondary:hover { box-shadow: 0 0 20px rgba(233, 223, 201, .12); }
 .button.danger:hover { box-shadow: 0 0 26px rgba(200, 70, 55, .45); }
 
-/* ---------- Formularios ---------- */
+/* Formularios */
 .form-card, .delete-card { border-color: rgba(199, 154, 80, .32); background: linear-gradient(150deg, rgba(40, 28, 20, .82), rgba(11, 8, 6, .9)); }
 .form-group label { font-family: var(--font-title); font-size: 11.5px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--brass-light); }
 .form-group input[type="number"], .form-group input[type="text"] {
@@ -244,7 +241,7 @@ body::before { opacity: .11; }              /* textura de trama más suave */
 .warning-icon { animation: warn-pulse 2.4s ease-in-out infinite; }
 @keyframes warn-pulse { 0%, 100% { box-shadow: 0 0 0 rgba(200, 70, 55, 0); } 50% { box-shadow: 0 0 26px rgba(200, 70, 55, .5); } }
 
-/* ---------- Login ---------- */
+/* Login */
 .login-page .main-container { display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 160px); }
 .login-wrap { width: 100%; display: grid; place-items: center; }
 .login-page .login-caja {
@@ -287,12 +284,12 @@ body::before { opacity: .11; }              /* textura de trama más suave */
 .login-btn:hover::after { left: 130%; }
 .login-note { margin: 20px 0 0; text-align: center; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
 
-/* ---------- Pie y botón secreto ---------- */
+/* Pie */
 .footer { background: linear-gradient(0deg, rgba(5, 4, 3, .92), rgba(8, 6, 5, .6)); border-top-color: rgba(199, 154, 80, .3); font-family: var(--font-title); }
 .secret-button { animation: secret-hint 7s ease-in-out infinite; }
 @keyframes secret-hint { 0%, 90%, 100% { box-shadow: none; } 95% { box-shadow: 0 0 14px rgba(229, 199, 127, .6); } }
 
-/* ---------- Botón de sonido ---------- */
+/* Boton de sonido */
 .sound-toggle {
     position: fixed; left: 18px; bottom: 18px; z-index: 40; width: 44px; height: 44px; display: grid; place-items: center;
     border-radius: 50%; border: 1px solid rgba(199, 154, 80, .6); background: rgba(10, 8, 6, .82);
@@ -304,10 +301,10 @@ body::before { opacity: .11; }              /* textura de trama más suave */
 .sound-toggle.is-muted { color: #9a8f7c; border-color: rgba(233, 223, 201, .25); }
 .sound-toggle.is-muted .mute-slash { display: block; }
 .sound-toggle.is-muted .wave { display: none; }
-.sound-toggle.is-waiting { animation: sound-wait 2.2s ease-in-out infinite; }  /* aún no ha sonado: invita a un clic */
+.sound-toggle.is-waiting { animation: sound-wait 2.2s ease-in-out infinite; }
 @keyframes sound-wait { 0%, 100% { box-shadow: 0 6px 22px rgba(0, 0, 0, .55); } 50% { box-shadow: 0 0 26px rgba(229, 199, 127, .6); } }
 
-/* ---------- Puertas de transición (login -> hotel) ---------- */
+/* Puertas */
 .door-transition { position: fixed; inset: 0; z-index: 90; pointer-events: none; visibility: hidden; }
 .door-transition.is-active { visibility: visible; }
 .door-leaf {
@@ -324,7 +321,7 @@ body::before { opacity: .11; }              /* textura de trama más suave */
 .door-transition.closing .door-leaf { transform: translateX(0); }
 .door-transition.start-closed .door-leaf { transition: none; transform: translateX(0); }
 
-/* ---------- Pantallas pequeñas ---------- */
+/* Responsive */
 @media (max-width: 850px) {
     .door-card:hover .door-frame { transform: none; }
 }
@@ -337,13 +334,13 @@ body::before { opacity: .11; }              /* textura de trama más suave */
     .sound-toggle { left: 12px; bottom: 12px; width: 40px; height: 40px; }
 }
 
-/* ---------- Accesibilidad: si el sistema pide menos movimiento, se apaga ---------- */
+/* Menos movimiento */
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; }
     #dustCanvas { display: none; }
 }
 
-/* ---------- Campos nuevos: listas, fechas, contadores y estados ---------- */
+/* Listas, fechas y estados */
 .form-group select, .form-group input[type="date"], .form-group input[type="email"], .form-group textarea {
     width: 100%; padding: 12px 13px; border: 1px solid rgba(233, 223, 201, .18); border-radius: 0; outline: none;
     background: rgba(0, 0, 0, .42); color: var(--paper); font: inherit; color-scheme: dark;
@@ -364,7 +361,7 @@ body::before { opacity: .11; }              /* textura de trama más suave */
 .status.st-finalizada { color: #b3a994; border-color: rgba(179, 169, 148, .3);  background: rgba(179, 169, 148, .05); }
 .status.st-cancelada  { color: #c78b82; border-color: rgba(143, 48, 40, .38);   background: rgba(143, 48, 40, .08); }
 
-/* Menú con más enlaces: se compacta un poco */
+/* Menu */
 .nav-links { gap: 3px; flex-wrap: wrap; justify-content: flex-end; }
 .nav-links > a { padding: 9px 10px; }
 @media (max-width: 900px) { .nav-links > a:not(.nav-button) { display: inline-block; font-size: 11px; padding: 8px 6px; } }

@@ -14,6 +14,7 @@ from .validators import (
 )
 
 
+# Modelo Habitacion
 class Habitacion(models.Model):
     numero = models.IntegerField(
         unique=True, validators=[MinValueValidator(1), MaxValueValidator(9999)],
@@ -38,6 +39,7 @@ class Habitacion(models.Model):
         verbose_name_plural = "Habitaciones"
 
 
+# Modelo Huesped
 class Huesped(models.Model):
     nombre = models.CharField(max_length=40, validators=[validar_nombre_persona], verbose_name="Nombre")
     apellido = models.CharField(max_length=40, validators=[validar_nombre_persona], verbose_name="Apellido")
@@ -51,6 +53,7 @@ class Huesped(models.Model):
         verbose_name = "Huésped"
         verbose_name_plural = "Huéspedes"
 
+    # normalizar datos
     def save(self, *args, **kwargs):
         self.rut = normalizar_rut(self.rut)
         self.telefono = normalizar_telefono(self.telefono)
@@ -70,10 +73,12 @@ class Huesped(models.Model):
         return f"{self.nombre_completo} ({self.rut_formateado})"
 
 
+# Modelo Reserva
 class Reserva(models.Model):
     PENDIENTE, CONFIRMADA, EN_CURSO, FINALIZADA, CANCELADA = (
         "pendiente", "confirmada", "en_curso", "finalizada", "cancelada",
     )
+    # estados
     ESTADOS = [
         (PENDIENTE, "Pendiente"),
         (CONFIRMADA, "Confirmada"),
@@ -81,7 +86,7 @@ class Reserva(models.Model):
         (FINALIZADA, "Finalizada (check-out)"),
         (CANCELADA, "Cancelada"),
     ]
-    # Qué estado puede venir después de cuál.
+    # transiciones permitidas
     TRANSICIONES = {
         PENDIENTE: [CONFIRMADA, CANCELADA],
         CONFIRMADA: [EN_CURSO, CANCELADA],
@@ -89,7 +94,8 @@ class Reserva(models.Model):
         FINALIZADA: [],
         CANCELADA: [],
     }
-    ACTIVOS = [PENDIENTE, CONFIRMADA, EN_CURSO]   # estados que ocupan la habitación
+    # estados que ocupan la habitacion
+    ACTIVOS = [PENDIENTE, CONFIRMADA, EN_CURSO]
     MAX_NOCHES = 30
     MAX_ANTICIPACION_DIAS = 730
 
@@ -119,8 +125,8 @@ class Reserva(models.Model):
     def puede_pasar_a(self, nuevo):
         return nuevo == self.estado or nuevo in self.TRANSICIONES.get(self.estado, [])
 
+    # validaciones
     def clean(self):
-        """Reglas de negocio (se ejecutan en formulario web y también en la API)."""
         errores = {}
         if self.fecha_entrada and self.fecha_salida:
             if self.fecha_salida <= self.fecha_entrada:
@@ -165,6 +171,7 @@ class Reserva(models.Model):
         original = Reserva.objects.filter(pk=self.pk).values("habitacion_id").first()
         return bool(original) and original["habitacion_id"] != self.habitacion_id
 
+    # calcular total
     def save(self, *args, **kwargs):
         if self.habitacion_id and self.noches > 0:
             self.total = self.noches * self.habitacion.precio
