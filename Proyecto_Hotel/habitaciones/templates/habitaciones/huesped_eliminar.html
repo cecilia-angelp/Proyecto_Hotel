@@ -1,0 +1,20 @@
+{% extends "habitaciones/base.html" %}
+
+{% block title %}Eliminar huésped | Hotel Aurora{% endblock %}
+
+{% block content %}
+<section class="delete-page">
+    <div class="delete-card">
+        <div class="warning-icon">!</div>
+        <p class="eyebrow">PUERTA CERRADA</p>
+        <h1>¿Eliminar este huésped?</h1>
+        <p>Estás a punto de eliminar a <strong>{{ huesped.nombre_completo }}</strong> (RUT {{ huesped.rut_formateado }}).</p>
+        <p class="warning-text">Esta acción no se puede deshacer.</p>
+        <form method="post" class="form-actions centered">
+            {% csrf_token %}
+            <a class="button secondary" href="{% url 'lista_huespedes' %}">Mantener registro</a>
+            <button class="button danger" type="submit">Eliminar huésped</button>
+        </form>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,109 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0b0908">
+    <title>{% block title %}Hotel Aurora{% endblock %}</title>
+    <!-- Tipografía: si no hay internet, el navegador usa Georgia automáticamente -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'habitaciones/css/estilo.css' %}">
+    <link rel="stylesheet" href="{% static 'habitaciones/css/aurora.css' %}">
+</head>
+<body class="{% if request.resolver_match.url_name == 'login' %}login-page{% else %}app-page{% if request.resolver_match.url_name == 'inicio' %} home-page{% endif %}{% endif %}">
+
+    <!-- Escenario: imagen de fondo, luz, polvo y viñeta -->
+    <div class="scene-background" aria-hidden="true">
+        <img class="scene-img" alt=""
+             src="{% if request.resolver_match.url_name == 'login' %}{% static 'habitaciones/img/lobby-login.jpg' %}{% else %}{% static 'habitaciones/img/lobby-menu.jpg' %}{% endif %}?v=3">
+    </div>
+    <div class="scene-light" aria-hidden="true"></div>
+    <canvas id="dustCanvas" aria-hidden="true"></canvas>
+    <div class="scene-vignette" aria-hidden="true"></div>
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+
+    <!-- Puertas de transición (decorativas) -->
+    <div class="door-transition" id="doorTransition" aria-hidden="true">
+        <div class="door-leaf door-leaf-left"></div>
+        <div class="door-leaf door-leaf-right"></div>
+    </div>
+
+    <header class="navbar">
+        <div class="nav-container">
+            <a class="brand" href="{% url 'inicio' %}" title="Hotel Aurora">
+                <span class="brand-icon">H</span>
+                <span class="brand-copy">
+                    <strong>HOTEL AURORA</strong>
+                    <small>GESTIÓN DE HABITACIONES</small>
+                </span>
+            </a>
+
+            <nav class="nav-links" aria-label="Navegación principal">
+                {% if request.user.is_authenticated and request.resolver_match.url_name != 'login' %}
+                    <a href="{% url 'inicio' %}">Inicio</a>
+                    <a href="{% url 'lista_habitaciones' %}">Habitaciones</a>
+                    <a href="{% url 'lista_huespedes' %}">Huéspedes</a>
+                    <a href="{% url 'lista_reservas' %}">Reservas</a>
+                    <a class="nav-button" href="{% url 'crear_reserva' %}">+ Nueva reserva</a>
+                    <form method="post" action="{% url 'logout' %}" class="logout-form">{% csrf_token %}<button type="submit" class="nav-button nav-exit">Salir</button></form>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-container">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'error' %}error{% else %}success{% endif %}">{% if message.tags == 'error' %}⚠{% else %}✓{% endif %} {{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <p><span>HOTEL AURORA</span> · Sistema de gestión de habitaciones</p>
+        <button class="secret-button" id="secretButton" type="button" aria-label="Botón secreto">13</button>
+    </footer>
+
+    <div class="secret-overlay" id="secretOverlay" aria-hidden="true">
+        <div class="secret-message">
+            <span class="secret-eye">◉</span>
+            <p class="eyebrow">HABITACIÓN 13</p>
+            <h2>¿Escuchaste eso?</h2>
+            <p>No todas las puertas deberían abrirse.</p>
+            <button class="button primary" id="closeSecret" type="button">Cerrar puerta</button>
+        </div>
+    </div>
+
+    <!-- Música ambiente: el login usa un tema y el resto del hotel usa otro -->
+    <audio id="bgm" loop preload="auto"
+           src="{% if request.resolver_match.url_name == 'login' %}{% static 'habitaciones/audio/doors-ost1.mp3' %}{% else %}{% static 'habitaciones/audio/doors2.mp3' %}{% endif %}"
+           data-track="{% if request.resolver_match.url_name == 'login' %}login{% else %}hotel{% endif %}"></audio>
+
+    <button class="sound-toggle" id="soundToggle" type="button" aria-pressed="false" aria-label="Silenciar o activar el sonido" title="Sonido">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 9v6h4l5 4V5L8 9H4z"></path>
+            <path class="wave wave-1" d="M16 9.5a4 4 0 0 1 0 5"></path>
+            <path class="wave wave-2" d="M18.5 7a7.5 7.5 0 0 1 0 10"></path>
+            <path class="mute-slash" d="M3 3l18 18"></path>
+        </svg>
+    </button>
+
+    <script src="{% static 'habitaciones/js/easter_egg.js' %}"></script>
+    <script src="{% static 'habitaciones/js/aurora.js' %}"></script>
+    <script src="{% static 'habitaciones/js/limites.js' %}"></script>
+    <script>
+        // Botón "Atrás" tras cerrar sesión: si el navegador muestra una copia guardada,
+        // se vuelve a pedir la página al servidor (que redirige al login si no hay sesión).
+        window.addEventListener("pageshow", function (event) {
+            var nav = performance.getEntriesByType && performance.getEntriesByType("navigation")[0];
+            if (event.persisted || (nav && nav.type === "back_forward")) { window.location.reload(); }
+        });
+    </script>
+</body>
+</html>

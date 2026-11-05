@@ -1,0 +1,87 @@
+{% extends "habitaciones/base.html" %}
+
+{% block title %}Inicio | Hotel Aurora{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-copy">
+        <p class="eyebrow">REGISTRO DE HUÉSPEDES · 1927</p>
+        <h1>Bienvenido al <span>Hotel Aurora</span></h1>
+        <p class="hero-text">
+            Un sistema sencillo para controlar las habitaciones del hotel. Mantén cada registro
+            en su sitio y recuerda: algunas puertas esconden más de lo que parece.
+        </p>
+
+        <div class="hero-actions">
+            <a class="button primary" href="{% url 'lista_habitaciones' %}">Ver habitaciones</a>
+            <a class="button secondary" href="{% url 'crear_habitacion' %}">Registrar habitación</a>
+        </div>
+    </div>
+
+    <div class="door-card" aria-label="Puerta del Hotel Aurora">
+        <div class="door-frame">
+            <div class="door-number">{{ total_habitaciones|stringformat:"02d" }}</div>
+            <div class="door-knob"></div>
+            <div class="door-sign">AURORA<br><small>HOTEL</small></div>
+        </div>
+        <p class="door-caption">LA NOCHE RECIÉN COMIENZA</p>
+    </div>
+</section>
+
+<section class="stats">
+    <article class="stat-card">
+        <span class="stat-label">REGISTRO</span>
+        <strong>{{ total_habitaciones }}</strong>
+        <span>habitaciones registradas</span>
+    </article>
+
+    <article class="stat-card available">
+        <span class="stat-label">DISPONIBLES</span>
+        <strong>{{ disponibles }}</strong>
+        <span>listas para reservar</span>
+    </article>
+
+    <article class="stat-card occupied">
+        <span class="stat-label">OCUPADAS</span>
+        <strong>{{ ocupadas }}</strong>
+        <span>no disponibles</span>
+    </article>
+</section>
+
+<section class="section-heading">
+    <div>
+        <p class="eyebrow">LIBRO DE REGISTRO</p>
+        <h2>Habitaciones recientes</h2>
+    </div>
+    <a class="text-link" href="{% url 'lista_habitaciones' %}">Ver todas →</a>
+</section>
+
+{% if habitaciones %}
+<div class="room-grid">
+    {% for habitacion in habitaciones|slice:":6" %}
+        <article class="room-card">
+            <div class="room-top">
+                <div class="room-number">HAB. {{ habitacion.numero }}</div>
+                <span class="door-mini">▣</span>
+            </div>
+            <div>
+                <h3>{{ habitacion.tipo }}</h3>
+                <p class="price">${{ habitacion.precio }} <span>/ noche</span></p>
+            </div>
+            {% if habitacion.disponible %}
+                <span class="status available">● Disponible</span>
+            {% else %}
+                <span class="status occupied">● Ocupada</span>
+            {% endif %}
+        </article>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <div class="empty-icon">▣</div>
+    <h3>El registro está vacío</h3>
+    <p>Aún no hay habitaciones. Abre la primera puerta del hotel registrando una habitación.</p>
+    <a class="button primary" href="{% url 'crear_habitacion' %}">Agregar habitación</a>
+</div>
+{% endif %}
+{% endblock %}

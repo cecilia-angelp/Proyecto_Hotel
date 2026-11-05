@@ -1,0 +1,75 @@
+{% extends "habitaciones/base.html" %}
+
+{% block title %}{% if reserva %}Editar reserva{% else %}Nueva reserva{% endif %} | Hotel Aurora{% endblock %}
+
+{% block content %}
+<section class="form-page">
+    <div class="page-heading compact">
+        <div>
+            <p class="eyebrow">{% if reserva %}MODIFICAR RESERVA #{{ reserva.pk }}{% else %}NUEVA RESERVA{% endif %}</p>
+            <h1>{% if reserva %}Editar reserva{% else %}Reservar una habitación{% endif %}</h1>
+            <p>Máximo 30 noches por reserva. La habitación no puede estar ocupada en esas fechas.</p>
+        </div>
+    </div>
+
+    {% if not hay_huespedes %}
+        <div class="alert error">Primero debes <a class="text-link" href="{% url 'crear_huesped' %}">registrar un huésped</a>.</div>
+    {% endif %}
+    {% if not hay_habitaciones %}
+        <div class="alert error">No hay habitaciones disponibles para reservar.</div>
+    {% endif %}
+
+    {% if errores %}
+        <div class="alert error">
+            <strong>Revisa los siguientes datos:</strong>
+            <ul>{% for error in errores %}<li>{{ error }}</li>{% endfor %}</ul>
+        </div>
+    {% endif %}
+
+    <form method="post" class="form-card" novalidate>
+        {% csrf_token %}
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="{{ form.habitacion.id_for_label }}">Habitación</label>
+                {{ form.habitacion }}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.huesped.id_for_label }}">Huésped</label>
+                {{ form.huesped }}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.fecha_entrada.id_for_label }}">Fecha de entrada</label>
+                {{ form.fecha_entrada }}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.fecha_salida.id_for_label }}">Fecha de salida</label>
+                {{ form.fecha_salida }}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.personas.id_for_label }}">Cantidad de personas</label>
+                <input id="{{ form.personas.id_for_label }}" name="personas" type="text" inputmode="numeric" maxlength="1"
+                       pattern="[1-6]" data-solo-digitos autocomplete="off" required placeholder="1 a 6"
+                       value="{{ form.personas.value|default_if_none:'' }}">
+                <small>Entre 1 y 6 personas.</small>
+            </div>
+            {% if form.estado %}
+            <div class="form-group">
+                <label for="{{ form.estado.id_for_label }}">Estado</label>
+                {{ form.estado }}
+                <small>Solo se muestran los cambios de estado permitidos.</small>
+            </div>
+            {% endif %}
+            <div class="form-group form-wide">
+                <label for="{{ form.observaciones.id_for_label }}">Observaciones (opcional)</label>
+                <input id="{{ form.observaciones.id_for_label }}" name="observaciones" type="text" maxlength="200" data-contador autocomplete="off"
+                       value="{{ form.observaciones.value|default_if_none:'' }}" placeholder="Ej: Llegada tarde">
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a class="button secondary" href="{% url 'lista_reservas' %}">Cancelar</a>
+            <button class="button primary" type="submit">Guardar reserva</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

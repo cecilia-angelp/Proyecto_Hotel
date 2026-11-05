@@ -1,0 +1,57 @@
+{% extends "habitaciones/base.html" %}
+
+{% block title %}Habitaciones | Hotel Aurora{% endblock %}
+
+{% block content %}
+<section class="page-heading">
+    <div>
+        <p class="eyebrow">LIBRO DE REGISTRO</p>
+        <h1>Habitaciones</h1>
+        <p>Consulta, modifica o elimina las habitaciones registradas.</p>
+    </div>
+    <a class="button primary" href="{% url 'crear_habitacion' %}">+ Registrar habitación</a>
+</section>
+
+{% if habitaciones %}
+<div class="table-wrapper">
+    <table class="room-table">
+        <thead>
+            <tr>
+                <th>Número</th>
+                <th>Tipo</th>
+                <th>Precio por noche</th>
+                <th>Estado</th>
+                <th class="actions-column">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for habitacion in habitaciones %}
+            <tr>
+                <td><strong><span class="table-door">▣</span> Habitación {{ habitacion.numero }}</strong></td>
+                <td>{{ habitacion.tipo }}</td>
+                <td>${{ habitacion.precio }}</td>
+                <td>
+                    {% if habitacion.disponible %}
+                        <span class="status available">● Disponible</span>
+                    {% else %}
+                        <span class="status occupied">● No disponible</span>
+                    {% endif %}
+                </td>
+                <td class="actions">
+                    <a class="action edit" href="{% url 'editar_habitacion' habitacion.pk %}">Editar</a>
+                    <a class="action delete" href="{% url 'eliminar_habitacion' habitacion.pk %}">Eliminar</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="empty-state">
+    <div class="empty-icon">▣</div>
+    <h3>No hay habitaciones registradas</h3>
+    <p>Registra una habitación para comenzar a administrar el hotel.</p>
+    <a class="button primary" href="{% url 'crear_habitacion' %}">Registrar habitación</a>
+</div>
+{% endif %}
+{% endblock %}

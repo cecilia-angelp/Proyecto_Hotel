@@ -1,0 +1,60 @@
+{% extends "habitaciones/base.html" %}
+
+{% block title %}Editar habitación | Hotel Aurora{% endblock %}
+
+{% block content %}
+<section class="form-page">
+    <div class="page-heading compact">
+        <div>
+            <p class="eyebrow">REGISTRO {{ habitacion.numero }}</p>
+            <h1>Editar habitación</h1>
+            <p>Actualiza los datos de esta habitación sin perder el registro.</p>
+        </div>
+    </div>
+
+    {% if errores %}
+        <div class="alert error">
+            <strong>Revisa los siguientes datos:</strong>
+            <ul>
+                {% for error in errores %}<li>{{ error }}</li>{% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <form method="post" class="form-card">
+        {% csrf_token %}
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="numero">Número de habitación</label>
+                <input id="numero" name="numero" type="text" inputmode="numeric" pattern="[0-9]{1,4}" maxlength="4" data-solo-digitos data-contador autocomplete="off" required value="{% if datos %}{{ datos.numero }}{% else %}{{ habitacion.numero }}{% endif %}">
+                <small>Debe ser entero, positivo y único.</small>
+            </div>
+
+            <div class="form-group">
+                <label for="tipo">Tipo de habitación</label>
+                <input id="tipo" name="tipo" type="text" minlength="3" maxlength="30" data-tipo-habitacion data-contador autocomplete="off" required value="{% if datos %}{{ datos.tipo }}{% else %}{{ habitacion.tipo }}{% endif %}">
+            </div>
+
+            <div class="form-group">
+                <label for="precio">Precio por noche</label>
+                <input id="precio" name="precio" type="text" inputmode="numeric" pattern="[0-9]{1,7}" maxlength="7" data-solo-digitos data-contador autocomplete="off" required value="{% if datos %}{{ datos.precio }}{% else %}{{ habitacion.precio }}{% endif %}">
+                <small>Solo números, entre 1 y 9.999.999 (máx. 7 dígitos), sin puntos.</small>
+            </div>
+
+            <div class="form-group checkbox-group">
+                <label for="disponible">Estado</label>
+                <label class="switch-label">
+                    <input id="disponible" name="disponible" type="checkbox"
+                        {% if datos %}{% if datos.disponible %}checked{% endif %}{% elif habitacion.disponible %}checked{% endif %}>
+                    <span>Habitación disponible</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a class="button secondary" href="{% url 'lista_habitaciones' %}">Cancelar</a>
+            <button class="button primary" type="submit">Guardar cambios</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

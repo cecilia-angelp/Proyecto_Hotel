@@ -1,0 +1,24 @@
+{% extends "habitaciones/base.html" %}
+
+{% block title %}Eliminar habitación | Hotel Aurora{% endblock %}
+
+{% block content %}
+<section class="delete-page">
+    <div class="delete-card">
+        <div class="warning-icon">!</div>
+        <p class="eyebrow">PUERTA CERRADA</p>
+        <h1>¿Eliminar esta habitación?</h1>
+        <p>
+            Estás a punto de eliminar la <strong>Habitación {{ habitacion.numero }}</strong>,
+            de tipo <strong>{{ habitacion.tipo }}</strong>.
+        </p>
+        <p class="warning-text">Esta acción no se puede deshacer.</p>
+
+        <form method="post" class="form-actions centered">
+            {% csrf_token %}
+            <a class="button secondary" href="{% url 'lista_habitaciones' %}">Mantener puerta</a>
+            <button class="button danger" type="submit">Eliminar habitación</button>
+        </form>
+    </div>
+</section>
+{% endblock %}

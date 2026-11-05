@@ -1,0 +1,56 @@
+{% extends "habitaciones/base.html" %}
+
+{% block title %}Reservas | Hotel Aurora{% endblock %}
+
+{% block content %}
+<section class="page-heading">
+    <div>
+        <p class="eyebrow">LIBRO DE RESERVAS</p>
+        <h1>Reservas</h1>
+        <p>Estadías programadas, en curso y pasadas.</p>
+    </div>
+    <a class="button primary" href="{% url 'crear_reserva' %}">+ Nueva reserva</a>
+</section>
+
+{% if reservas %}
+<div class="table-wrapper">
+    <table class="room-table">
+        <thead>
+            <tr>
+                <th>N°</th><th>Habitación</th><th>Huésped</th><th>Entrada</th><th>Salida</th>
+                <th>Noches</th><th>Total</th><th>Estado</th><th class="actions-column">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in reservas %}
+            <tr>
+                <td>#{{ r.pk }}</td>
+                <td><strong><span class="table-door">▣</span> {{ r.habitacion.numero }}</strong></td>
+                <td>{{ r.huesped.nombre_completo }}</td>
+                <td>{{ r.fecha_entrada|date:"d/m/Y" }}</td>
+                <td>{{ r.fecha_salida|date:"d/m/Y" }}</td>
+                <td>{{ r.noches }}</td>
+                <td>${{ r.total }}</td>
+                <td><span class="status st-{{ r.estado }}">● {{ r.get_estado_display }}</span></td>
+                <td class="actions">
+                    {% if r.estado != 'finalizada' and r.estado != 'cancelada' %}
+                        <a class="action edit" href="{% url 'editar_reserva' r.pk %}">Editar</a>
+                    {% endif %}
+                    {% if r.estado != 'en_curso' %}
+                        <a class="action delete" href="{% url 'eliminar_reserva' r.pk %}">Eliminar</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="empty-state">
+    <div class="empty-icon">▣</div>
+    <h3>No hay reservas registradas</h3>
+    <p>Crea la primera reserva (necesitas al menos un huésped y una habitación disponible).</p>
+    <a class="button primary" href="{% url 'crear_reserva' %}">Nueva reserva</a>
+</div>
+{% endif %}
+{% endblock %}
