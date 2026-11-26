@@ -23,7 +23,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'habitaciones',
     'rest_framework',
-    'rest_framework.authtoken',
+    'drf_spectacular',
+    'drf_spectacular_sidecar',
 ]
 
 # Middleware
@@ -109,28 +110,58 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Login
 LOGIN_URL = 'login'
 
-# Sesion
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-SESSION_COOKIE_AGE = 1800
-SESSION_SAVE_EVERY_REQUEST = True
-# Cookies propias
+# Sesion persistente (cookie de 1 dia; guarda el id de la tabla Sesion)
+SESSION_COOKIE_AGE = 60 * 60 * 24
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SESSION_SAVE_EVERY_REQUEST = False
 SESSION_COOKIE_NAME = 'aurora_sessionid'
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_NAME = 'aurora_csrftoken'
 LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = 'login'
 
-# API REST (token)
+# JWT (se pueden cambiar con variables de entorno; ver README)
+JWT_ACCESS_MINUTOS = int(os.environ.get('JWT_ACCESS_MINUTOS', 5))
+JWT_REFRESH_MINUTOS = int(os.environ.get('JWT_REFRESH_MINUTOS', 60 * 24))
+COOKIE_ACCESS = 'access_token'
+COOKIE_REFRESH = 'refresh_token'
+
+
+# API REST
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
+        'habitaciones.autenticacion.JWTSesionAutenticacion',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
-        'rest_framework.renderers.BrowsableAPIRenderer',
     ],
+    'EXCEPTION_HANDLER': 'habitaciones.autenticacion.manejador_errores',
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+# Swagger / OpenAPI
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'API Hotel Aurora',
+    'DESCRIPTION': (
+        'API REST protegida con JWT.\n\n'
+        '1. Usa **POST /api/login/** con tu usuario y contraseña.\n'
+        '2. Copia el `access_token` y pulsa **Authorize**: pega solo el token (Swagger agrega "Bearer").\n'
+        '3. Cuando el Access expire (401) usa **POST /api/refresh/** con el `refresh_token`.'
+    ),
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'PREPROCESSING_HOOKS': ['habitaciones.esquema.ocultar_alias'],
+    'SERVE_PERMISSIONS': ['rest_framework.permissions.AllowAny'],
+    'SERVE_AUTHENTICATION': [],
+    'SWAGGER_UI_DIST': 'SIDECAR',
+    'SWAGGER_UI_FAVICON_HREF': 'SIDECAR',
+    'COMPONENT_SPLIT_REQUEST': True,
+    'SWAGGER_UI_SETTINGS': {'persistAuthorization': True},
+    'TAGS': [{'name': 'Autenticación'}, {'name': 'Sesiones'}, {'name': 'Habitaciones'},
+             {'name': 'Huéspedes'}, {'name': 'Reservas'}],
 }
 
 # Parche XAMPP (version de MariaDB)

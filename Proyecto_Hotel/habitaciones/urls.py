@@ -20,8 +20,15 @@ urlpatterns = [
     path("reservas/editar/<int:pk>/", views.editar_reserva, name="editar_reserva"),
     path("reservas/eliminar/<int:pk>/", views.eliminar_reserva, name="eliminar_reserva"),
     # API
-    path("api/token/", api_views.api_login, name="api_login"),
+    path("api/login/", api_views.api_login, name="api_login"),
+    path("api/refresh/", api_views.api_refresh, name="api_refresh"),
+    # rutas equivalentes de la clase (mismas vistas; no aparecen en Swagger)
+    path("api/token/", api_views.api_login, name="api_token"),
+    path("api/token/refresh/", api_views.api_refresh, name="api_token_refresh"),
+    path("api/perfil/", api_views.api_perfil, name="api_perfil"),
     path("api/logout/", api_views.api_logout, name="api_logout"),
+    path("api/sesiones/", api_views.api_sesiones, name="api_sesiones"),
+    path("api/sesiones/<int:pk>/", api_views.api_sesion_detalle, name="api_sesion_detalle"),
     path("api/habitaciones/", api_views.api_habitaciones, name="api_habitaciones"),
     path("api/habitaciones/<int:pk>/", api_views.api_habitacion_detalle, name="api_habitacion_detalle"),
     path("api/huespedes/", api_views.api_huespedes, name="api_huespedes"),

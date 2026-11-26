@@ -1,8 +1,10 @@
 from datetime import date, timedelta
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.utils import timezone
 
 from .validators import (
     normalizar_rut,
@@ -179,3 +181,35 @@ class Reserva(models.Model):
 
     def __str__(self):
         return f"Reserva #{self.pk} · Hab. {self.habitacion.numero} · {self.huesped.nombre_completo}"
+
+
+# Modelo Sesion (registro de sesiones y tokens JWT)
+class Sesion(models.Model):
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="sesiones")
+    # identificadores (jti) de los tokens vigentes
+    jti_access = models.CharField(max_length=36, db_index=True)
+    jti_refresh = models.CharField(max_length=36, db_index=True)
+    # tokens completos (los mismos que viajan en las cookies)
+    access_token = models.TextField()
+    refresh_token = models.TextField()
+    access_expira = models.DateTimeField()
+    refresh_expira = models.DateTimeField()
+    creada = models.DateTimeField(auto_now_add=True)
+    actualizada = models.DateTimeField(auto_now=True)
+    activa = models.BooleanField(default=True)
+    cerrada_en = models.DateTimeField(null=True, blank=True)
+    ip = models.GenericIPAddressField(null=True, blank=True)
+    navegador = models.CharField(max_length=200, blank=True, default="")
+
+    class Meta:
+        ordering = ["-creada"]
+        verbose_name = "Sesión"
+        verbose_name_plural = "Sesiones"
+
+    @property
+    def vigente(self):
+        return self.activa and self.refresh_expira > timezone.now()
+
+    def __str__(self):
+        estado = "activa" if self.vigente else "cerrada"
+        return f"Sesión {self.pk} · {self.usuario} · {estado}"
