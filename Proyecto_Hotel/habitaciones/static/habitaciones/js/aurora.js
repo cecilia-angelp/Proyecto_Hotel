@@ -1,0 +1,286 @@
+// Ambiente (musica y efectos)
+(function () {
+    "use strict";
+
+    // Preferencias en cookies (no se usa localStorage ni sessionStorage)
+    function ckGet(k) {
+        var m = document.cookie.match(new RegExp("(?:^|; )" + k + "=([^;]*)"));
+        return m ? decodeURIComponent(m[1]) : null;
+    }
+    function ckSet(k, v, segundos) {
+        document.cookie = k + "=" + encodeURIComponent(v) + "; path=/; SameSite=Lax" + (segundos ? "; max-age=" + segundos : "");
+    }
+    function ckDel(k) { document.cookie = k + "=; path=/; max-age=0; SameSite=Lax"; }
+    function lsGet(k) { return ckGet(k); }
+    function lsSet(k, v) { ckSet(k, v, 31536000); }
+    function ssGet(k) { return ckGet(k); }
+    function ssSet(k, v) { ckSet(k, v); }
+    function ssDel(k) { ckDel(k); }
+
+    var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var isLogin = document.body.classList.contains("login-page");
+
+    // Sonido
+    var bgm = document.getElementById("bgm");
+    var toggle = document.getElementById("soundToggle");
+    var MUSIC_VOLUME = 0.32;
+    var muted = lsGet("aurora_muted") === "1";
+    var unlocked = false;
+    var ctx = null;
+    var track = bgm ? (bgm.dataset.track || "hotel") : "hotel";
+    var timeKey = "aurora_t_" + track;
+
+    function paintToggle() {
+        if (!toggle) return;
+        toggle.classList.toggle("is-muted", muted);
+        toggle.classList.toggle("is-waiting", !unlocked && !muted);
+        toggle.setAttribute("aria-pressed", muted ? "true" : "false");
+    }
+
+    function fadeTo(target, ms) {
+        if (!bgm) return;
+        var start = bgm.volume, t0 = performance.now();
+        (function step(now) {
+            var p = Math.min(1, (now - t0) / ms);
+            bgm.volume = Math.max(0, Math.min(1, start + (target - start) * p));
+            if (p < 1) requestAnimationFrame(step);
+        })(t0);
+    }
+
+    function restorePosition() {
+        if (!bgm) return;
+        var saved = parseFloat(ssGet(timeKey));
+        if (!isFinite(saved) || saved < 1) return;
+        var apply = function () {
+            try {
+                if (bgm.duration && saved < bgm.duration - 2 && Math.abs(bgm.currentTime - saved) > 1.5) {
+                    bgm.currentTime = saved;
+                }
+            } catch (e) {}
+        };
+        if (bgm.readyState >= 1) apply(); else bgm.addEventListener("loadedmetadata", apply, { once: true });
+        bgm.addEventListener("canplaythrough", apply, { once: true });
+    }
+
+    function playMusic() {
+        if (!bgm || muted) return;
+        bgm.volume = 0;
+        var p = bgm.play();
+        if (p && p.then) {
+            p.then(function () { unlocked = true; paintToggle(); fadeTo(MUSIC_VOLUME, 1800); })
+             .catch(function () {});
+        }
+    }
+
+    function ensureContext() {
+        var AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return;
+        if (!ctx) { try { ctx = new AC(); } catch (e) { ctx = null; } }
+        if (ctx && ctx.state === "suspended") { ctx.resume(); }
+    }
+
+    function unlock() {
+        ensureContext();
+        if (!unlocked && !muted) { playMusic(); }
+        if (ctx && ctx.state === "running" && (unlocked || muted)) {
+            ["pointerdown", "keydown", "touchstart"].forEach(function (ev) { document.removeEventListener(ev, unlock); });
+        }
+    }
+
+    function savePosition() { if (bgm && bgm.currentTime > 0) ssSet(timeKey, String(bgm.currentTime)); }
+
+    if (bgm) {
+        bgm.volume = 0;
+        restorePosition();
+        playMusic();
+        ["pointerdown", "keydown", "touchstart"].forEach(function (ev) { document.addEventListener(ev, unlock, { passive: true }); });
+        setInterval(savePosition, 1000);
+        window.addEventListener("pagehide", savePosition);
+        document.addEventListener("visibilitychange", function () {
+            if (document.hidden) { bgm.pause(); } else if (unlocked && !muted) { bgm.play().catch(function () {}); }
+        });
+    }
+
+    if (toggle) {
+        toggle.addEventListener("click", function () {
+            muted = !muted;
+            lsSet("aurora_muted", muted ? "1" : "0");
+            if (muted) { fadeTo(0, 300); setTimeout(function () { if (muted && bgm) bgm.pause(); }, 320); }
+            else { ensureContext(); playMusic(); }
+            paintToggle();
+        });
+    }
+    paintToggle();
+
+    // Efectos
+    function canSfx() { return ctx && ctx.state === "running" && !muted; }
+
+    function tick() {
+        if (!canSfx()) return;
+        var t = ctx.currentTime;
+        var o = ctx.createOscillator(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+        o.type = "triangle";
+        o.frequency.setValueAtTime(540, t);
+        o.frequency.exponentialRampToValueAtTime(250, t + 0.07);
+        f.type = "lowpass"; f.frequency.value = 1500;
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.05, t + 0.006);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.1);
+        o.connect(f); f.connect(g); g.connect(ctx.destination);
+        o.start(t); o.stop(t + 0.12);
+    }
+
+    function thump(at, strength) {
+        var t = at;
+        var o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = "sine";
+        o.frequency.setValueAtTime(130, t);
+        o.frequency.exponentialRampToValueAtTime(48, t + 0.16);
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(strength, t + 0.008);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.2);
+        o.connect(g); g.connect(ctx.destination);
+        o.start(t); o.stop(t + 0.22);
+
+        var len = Math.floor(ctx.sampleRate * 0.05);
+        var buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
+        for (var i = 0; i < len; i++) { d[i] = (Math.random() * 2 - 1) * (1 - i / len); }
+        var n = ctx.createBufferSource(); n.buffer = buf;
+        var lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 520;
+        var ng = ctx.createGain(); ng.gain.value = strength * 0.7;
+        n.connect(lp); lp.connect(ng); ng.connect(ctx.destination);
+        n.start(t);
+    }
+
+    function knock(times) {
+        if (!canSfx()) return;
+        var n = times || 2, t = ctx.currentTime + 0.01;
+        for (var i = 0; i < n; i++) { thump(t + i * 0.16, 0.45); }
+    }
+
+    // Campanita de recepcion (aviso de exito)
+    function campana() {
+        if (!canSfx()) return;
+        var t = ctx.currentTime + 0.01;
+        [[880, 0.07, 0.9], [1320, 0.035, 0.6], [1760, 0.02, 0.4]].forEach(function (p) {
+            var o = ctx.createOscillator(), g = ctx.createGain();
+            o.type = "sine"; o.frequency.value = p[0];
+            g.gain.setValueAtTime(0.0001, t);
+            g.gain.exponentialRampToValueAtTime(p[1], t + 0.005);
+            g.gain.exponentialRampToValueAtTime(0.0001, t + p[2]);
+            o.connect(g); g.connect(ctx.destination);
+            o.start(t); o.stop(t + p[2] + 0.05);
+        });
+    }
+    window.AuroraSfx = { campana: campana, golpe: function (n) { knock(n); }, asegurar: ensureContext };
+
+    var HOVER_SELECTOR = "a.button, button, .nav-links a, .action, .brand, .text-link, .room-card, .stat-card, .door-card";
+    var lastHover = null, lastTick = 0;
+    document.addEventListener("mouseover", function (e) {
+        var el = e.target.closest ? e.target.closest(HOVER_SELECTOR) : null;
+        if (!el || el === lastHover) return;
+        lastHover = el;
+        var now = performance.now();
+        if (now - lastTick > 70) { lastTick = now; tick(); }
+    });
+    document.addEventListener("mouseout", function (e) {
+        if (lastHover && !lastHover.contains(e.relatedTarget)) { lastHover = null; }
+    });
+    document.addEventListener("pointerdown", function (e) {
+        var el = e.target.closest ? e.target.closest("a.button, button.button, .login-btn, .nav-button, .action") : null;
+        if (el && canSfx()) { thump(ctx.currentTime + 0.005, 0.28); }
+    });
+
+    // Puertas
+    var doors = document.getElementById("doorTransition");
+    var DOOR_FLAG = "aurora_door";
+
+    // Si la pagina anterior cerro las puertas, aqui se abren
+    if (doors && ssGet(DOOR_FLAG) === "1" && !reduceMotion) {
+        ssDel(DOOR_FLAG);
+        doors.classList.add("is-active", "start-closed");
+        void doors.offsetWidth;
+        requestAnimationFrame(function () {
+            doors.classList.remove("start-closed");
+            setTimeout(function () { doors.classList.remove("is-active"); }, 1100);
+        });
+    } else {
+        ssDel(DOOR_FLAG);
+    }
+
+    // Cierra las puertas (al entrar y al salir) y luego llama a alTerminar
+    window.AuroraDoors = {
+        cerrar: function (alTerminar) {
+            if (reduceMotion || !doors) { alTerminar(); return; }
+            try { ensureContext(); knock(2); } catch (err) {}
+            ssSet(DOOR_FLAG, "1");
+            doors.classList.add("is-active");
+            void doors.offsetWidth;
+            doors.classList.add("closing");
+            var listo = false;
+            function ir() { if (listo) return; listo = true; alTerminar(); }
+            setTimeout(ir, 950);
+            setTimeout(ir, 2500);
+        },
+        // Vuelve a abrir las puertas (por ejemplo si el login fue incorrecto)
+        abrir: function () {
+            ssDel(DOOR_FLAG);
+            if (!doors) { return; }
+            doors.classList.remove("closing");
+            setTimeout(function () { doors.classList.remove("is-active"); }, 1000);
+        }
+    };
+
+    // Polvo
+    var canvas = document.getElementById("dustCanvas");
+    if (canvas && canvas.getContext && !reduceMotion) {
+        var c = canvas.getContext("2d");
+        var dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+        var W = 0, H = 0, motes = [];
+        var COUNT = window.innerWidth < 700 ? 28 : 64;
+
+        function resize() {
+            W = window.innerWidth; H = window.innerHeight;
+            canvas.width = Math.floor(W * dpr); canvas.height = Math.floor(H * dpr);
+            c.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+        function spawn(randomY) {
+            return {
+                x: Math.random() * W,
+                y: randomY ? Math.random() * H : H + 10,
+                r: Math.random() * 1.7 + 0.4,
+                vx: (Math.random() - 0.5) * 0.15,
+                vy: -(Math.random() * 0.22 + 0.04),
+                a: Math.random() * 0.5 + 0.12,
+                tw: Math.random() * Math.PI * 2,
+                ts: Math.random() * 0.02 + 0.006
+            };
+        }
+        resize();
+        for (var i = 0; i < COUNT; i++) { motes.push(spawn(true)); }
+        window.addEventListener("resize", resize);
+
+        var running = true;
+        document.addEventListener("visibilitychange", function () {
+            running = !document.hidden;
+            if (running) requestAnimationFrame(frame);
+        });
+        function frame() {
+            if (!running) return;
+            c.clearRect(0, 0, W, H);
+            for (var k = 0; k < motes.length; k++) {
+                var m = motes[k];
+                m.x += m.vx + Math.sin(m.tw) * 0.08; m.y += m.vy; m.tw += m.ts;
+                if (m.y < -10 || m.x < -10 || m.x > W + 10) { motes[k] = spawn(false); continue; }
+                var alpha = m.a * (0.55 + 0.45 * Math.sin(m.tw * 3));
+                var grad = c.createRadialGradient(m.x, m.y, 0, m.x, m.y, m.r * 4);
+                grad.addColorStop(0, "rgba(255,214,150," + alpha + ")");
+                grad.addColorStop(1, "rgba(255,214,150,0)");
+                c.fillStyle = grad;
+                c.beginPath(); c.arc(m.x, m.y, m.r * 4, 0, Math.PI * 2); c.fill();
+            }
+            requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+    }
+})();

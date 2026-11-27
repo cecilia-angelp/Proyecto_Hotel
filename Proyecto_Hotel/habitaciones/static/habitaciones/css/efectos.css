@@ -1,0 +1,152 @@
+/* Efectos: contador de sesion, avisos, puertas de habitaciones y tarjeta de check-in */
+
+/* Contador de sesion */
+.session-timer {
+    display: inline-flex; align-items: center; gap: 7px; padding: 7px 11px;
+    border: 1px solid var(--line); color: var(--paper-soft); font-size: 11px; letter-spacing: 1.2px;
+    text-transform: uppercase; white-space: nowrap; cursor: help; transition: border-color .3s, color .3s;
+}
+.session-timer .timer-text { font-variant-numeric: tabular-nums; color: var(--brass-light); font-size: 12px; letter-spacing: 1px; }
+.timer-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); animation: timer-pulse 2.4s ease-in-out infinite; }
+.session-timer.timer-low { border-color: rgba(199, 154, 80, .75); }
+.session-timer.timer-low .timer-dot { background: var(--brass); box-shadow: 0 0 9px var(--brass); animation-duration: .9s; }
+.session-timer.timer-renewing .timer-text { opacity: .55; }
+.session-timer.timer-renewed { border-color: var(--green); color: #cfe3c8; animation: timer-flash 1.4s ease-out; }
+@keyframes timer-pulse { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+@keyframes timer-flash { 0% { box-shadow: 0 0 0 0 rgba(119, 150, 108, .75); } 100% { box-shadow: 0 0 0 18px rgba(119, 150, 108, 0); } }
+
+/* Avisos deslizantes */
+#toasts { position: fixed; top: 92px; right: 22px; z-index: 120; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+.toast {
+    pointer-events: auto; cursor: pointer; display: flex; align-items: center; gap: 12px; max-width: min(380px, calc(100vw - 44px));
+    padding: 13px 18px; background: rgba(18, 13, 10, .96); color: var(--paper); border: 1px solid var(--line);
+    border-left: 3px solid var(--green); box-shadow: var(--shadow); font-size: 14px;
+    animation: toast-in .45s cubic-bezier(.2, .9, .3, 1.2) both;
+}
+.toast.toast-error { border-left-color: var(--red); }
+.toast.saliendo { animation: toast-out .35s ease-in both; }
+.toast-icon { display: inline-grid; place-items: center; width: 22px; height: 22px; flex: none; border-radius: 50%; background: rgba(119, 150, 108, .18); color: #bcd6b3; font-size: 13px; }
+.toast-error .toast-icon { background: rgba(143, 48, 40, .25); color: #f0b9b0; }
+@keyframes toast-in { from { opacity: 0; transform: translateX(60px); } to { opacity: 1; transform: none; } }
+@keyframes toast-out { to { opacity: 0; transform: translateX(60px); } }
+
+/* Selector de vista */
+.view-switch { display: inline-flex; margin-bottom: 20px; border: 1px solid var(--line); }
+.view-btn { padding: 8px 18px; background: transparent; color: var(--muted); border: 0; font: inherit; font-size: 11px; letter-spacing: 1.6px; text-transform: uppercase; cursor: pointer; }
+.view-btn.activo { background: rgba(199, 154, 80, .14); color: var(--brass-light); }
+[hidden] { display: none !important; }
+
+/* Habitaciones como puertas de madera (imagen puerta_madera.jpg) */
+.hall { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 30px; perspective: 1400px; }
+.room-door { position: relative; container-type: inline-size; animation: door-rise .6s ease both; animation-delay: calc(var(--i) * 70ms); }
+@keyframes door-rise { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
+.rd-light {
+    position: absolute; inset: 4px 4px 40px; z-index: 0; opacity: .2; transition: opacity .45s;
+    background: radial-gradient(ellipse at 50% 55%, rgba(255, 205, 120, .95), rgba(255, 160, 60, .25) 60%, transparent 78%);
+}
+.room-door.is-busy .rd-light { background: radial-gradient(ellipse at 50% 60%, rgba(143, 48, 40, .8), transparent 70%); opacity: .12; }
+.rd-leaf {
+    position: relative; z-index: 1; aspect-ratio: 860 / 903; overflow: hidden;
+    background: #4a2511 url("../img/puerta_madera.jpg") center / 100% 100% no-repeat;
+    border-radius: 2px; box-shadow: 0 18px 36px rgba(0, 0, 0, .55);
+    transform-origin: left center; transition: transform .6s cubic-bezier(.2, .8, .2, 1), box-shadow .6s;
+}
+.room-door.is-free:hover .rd-leaf, .room-door.is-free:focus-within .rd-leaf { transform: rotateY(-16deg); box-shadow: 16px 20px 44px rgba(0, 0, 0, .6); }
+.room-door.is-free:hover .rd-light, .room-door.is-free:focus-within .rd-light { opacity: 1; }
+/* numero grabado sobre la placa (centro de la placa: 50% / 30%) */
+.rd-plate-num {
+    position: absolute; left: 50%; top: 30%; transform: translate(-50%, -50%); white-space: nowrap;
+    font-family: "Cinzel", serif; font-weight: 700; font-size: 12.5cqw; letter-spacing: .04em; color: #2b1a07;
+    text-shadow: 0 1px 0 rgba(255, 232, 160, .55), 0 -1px 0 rgba(0, 0, 0, .25);
+}
+.rd-long .rd-plate-num { font-size: 10cqw; }
+.rd-info { position: absolute; left: 10%; right: 22%; top: 55%; display: flex; flex-direction: column; gap: 6px; align-items: center; text-align: center; }
+.rd-info strong { color: #f6edd8; font-weight: 500; font-size: 7.6cqw; text-shadow: 0 2px 5px rgba(0, 0, 0, .8); }
+.rd-info > span:not(.status) { color: #e3d2b0; font-size: 5.2cqw; text-shadow: 0 1px 4px rgba(0, 0, 0, .85); }
+.rd-info .status { background: rgba(0, 0, 0, .45); }
+.rd-actions {
+    display: flex; align-items: center; justify-content: center; margin-top: 6px; padding: 7px 0;
+    background: rgba(12, 7, 4, .72); border: 1px solid rgba(199, 154, 80, .4);
+}
+.rd-actions .action { margin: 0; border: 0; background: none; box-shadow: none; padding: 3px 22px; font-size: 15px; letter-spacing: .5px; text-transform: none; }
+.rd-actions .action + .action { border-left: 1px solid rgba(229, 199, 127, .3); }
+.rd-actions .action.edit { color: #f0d77f; }
+.rd-actions .action.delete { color: #e0707a; }
+.rd-actions .action:hover { text-shadow: 0 0 10px currentColor; background: none; }
+.room-door.is-busy .rd-leaf { filter: saturate(.5) brightness(.72); }
+
+/* Tarjeta de check-in */
+.checkin-overlay { position: fixed; inset: 0; z-index: 130; display: grid; place-items: center; padding: 20px; background: rgba(5, 3, 2, .78); opacity: 0; transition: opacity .35s; }
+.checkin-overlay.visible { opacity: 1; }
+.keycard {
+    width: min(400px, 100%); padding: 26px 28px 24px; position: relative; overflow: hidden;
+    background: linear-gradient(150deg, #2b1f17, #130d0a 80%); border: 1px solid var(--brass); box-shadow: 0 30px 80px rgba(0, 0, 0, .7), 0 0 60px rgba(199, 154, 80, .12);
+    transform: translateY(-120px) rotate(-5deg); opacity: 0; transition: transform .7s cubic-bezier(.2, 1.1, .3, 1), opacity .5s;
+}
+.checkin-overlay.visible .keycard { transform: none; opacity: 1; }
+.keycard::after { content: ""; position: absolute; top: 0; left: -60%; width: 40%; height: 100%; background: linear-gradient(100deg, transparent, rgba(255, 235, 190, .16), transparent); animation: keycard-shine 2.6s .6s ease-in-out 1; }
+@keyframes keycard-shine { to { left: 130%; } }
+.keycard-brand { margin: 0; font-family: "Cinzel", serif; letter-spacing: 5px; font-size: 12px; color: var(--brass-light); }
+.keycard h2 { margin: 6px 0 14px; font-family: "Cinzel", serif; font-weight: 500; font-size: 24px; color: var(--paper); }
+.keycard-stripe { height: 30px; margin: 0 -28px 16px; background: repeating-linear-gradient(90deg, #0a0706 0 3px, #1d1410 3px 5px, #0a0706 5px 6px, #2a1e15 6px 9px); border-block: 1px solid rgba(199, 154, 80, .25); }
+.keycard-row { display: flex; justify-content: space-between; gap: 16px; padding: 7px 0; border-bottom: 1px dashed rgba(233, 223, 201, .12); font-size: 13px; color: var(--muted); }
+.keycard-row strong { color: var(--paper); font-weight: 500; text-align: right; }
+.keycard-total { border-bottom: 0; padding-top: 12px; font-size: 14px; }
+.keycard-total strong { color: var(--brass-light); font-size: 20px; font-family: "Cinzel", serif; }
+.keycard-btn { width: 100%; margin-top: 18px; }
+
+@media (prefers-reduced-motion: reduce) {
+    .toast, .room-door, .timer-dot, .keycard::after { animation: none !important; }
+    .rd-leaf, .keycard, .checkin-overlay { transition: none !important; }
+    .room-door.is-free:hover .rd-leaf { transform: none; }
+}
+@media (max-width: 760px) {
+    #toasts { top: 78px; right: 12px; }
+    .session-timer .timer-label { display: none; }
+}
+
+/* Puertas compactas (version liviana) */
+.hall { grid-template-columns: repeat(auto-fill, 170px); justify-content: start; gap: 20px 18px; }
+.rd-leaf { box-shadow: 0 10px 20px rgba(0, 0, 0, .45); filter: saturate(.92) brightness(.93); }
+.rd-info { top: 55%; left: 8%; right: 20%; gap: 3px; }
+.rd-info strong { font-size: 9.5cqw; }
+.rd-info > span:not(.status) { font-size: 7.4cqw; }
+.rd-info .status { font-size: 9px; padding: 1px 7px; }
+.rd-plate-num { font-size: 12cqw; }
+.rd-long .rd-plate-num { font-size: 9.6cqw; }
+.rd-actions { margin-top: 4px; padding: 3px 0; background: none; border: 0; }
+.rd-actions .action { font-size: 13px; padding: 2px 12px; }
+
+/* Botones con la placa de laton (boton_placa.png) */
+.nav-button, .button.primary, .hero-actions .button.secondary {
+    display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; padding: 0 !important; border: 0 !important; border-radius: 0 !important;
+    background: url("../img/boton_placa.png") center / 100% 100% no-repeat !important; box-shadow: none !important;
+    color: #2a1704 !important; font-family: "Cinzel", serif; font-weight: 700; letter-spacing: .1em; text-shadow: 0 1px 0 rgba(255, 236, 175, .5);
+    filter: drop-shadow(0 4px 5px rgba(0, 0, 0, .55)); transition: filter .25s, transform .25s;
+}
+.nav-button:hover, .button.primary:hover, .hero-actions .button.secondary:hover { transform: translateY(-1px); filter: drop-shadow(0 4px 5px rgba(0, 0, 0, .55)) brightness(1.15) drop-shadow(0 0 10px rgba(255, 205, 120, .45)); background-color: transparent !important; }
+.nav-button { width: 190px; height: 58px; font-size: 11.5px; }
+.nav-button.nav-exit { width: 112px; height: 40px; font-size: 11px; }
+.button.primary, .hero-actions .button.secondary { min-width: 250px; height: 74px; font-size: 12.5px; }
+.brand-icon {
+    background: url("../img/laton_textura.jpg") center / cover !important; color: #2a1704 !important; font-weight: 700; text-shadow: 0 1px 0 rgba(255, 236, 175, .5);
+    border: 1px solid #40290a !important; box-shadow: inset 0 0 0 2px rgba(255, 238, 180, .4), inset 0 0 0 3px rgba(70, 45, 10, .5), 0 3px 8px rgba(0, 0, 0, .5) !important; border-radius: 3px;
+}
+
+/* Puerta principal del inicio con la misma madera y placa de las habitaciones */
+.door-card .door-frame {
+    height: auto; aspect-ratio: 860 / 903; container-type: inline-size; overflow: hidden;
+    background: #4a2511 url("../img/puerta_madera.jpg") center / 100% 100% no-repeat;
+    border: 0; outline: 0; box-shadow: 0 22px 46px rgba(0, 0, 0, .55);
+}
+.door-card .door-frame::before, .door-card .door-frame::after { display: none; }
+.door-card .door-number {
+    top: 30%; font-size: 17cqw; font-weight: 700; letter-spacing: .06em; color: #2b1a07; animation: none;
+    text-shadow: 0 1px 0 rgba(255, 232, 160, .55), 0 -1px 0 rgba(0, 0, 0, .25);
+}
+.door-card .door-knob { display: none; }
+.door-card .door-sign {
+    top: 61%; left: 50%; padding: 5px 14px; font-size: 5.2cqw; letter-spacing: .22em; text-align: center; color: #f0d994; border-color: rgba(240, 217, 148, .55);
+    background: rgba(20, 8, 2, .35); text-shadow: 0 1px 4px rgba(0, 0, 0, .8);
+}
+.door-card .door-sign small { font-size: 3.4cqw; letter-spacing: .3em; }
